@@ -82,34 +82,59 @@ void BPlan20::run()
   UTime t("now");
   bool finished = false;
   bool lost = false;
+  double length = 1;
+  int angle = 0;
   state = 10;
   oldstate = state;
-  //
   toLog("Plan20 started");
   //
   while (not finished and not lost and not service.stop)
   {
     switch (state)
-    { // make a shift in heading-mission
+      {
       case 10:
-        pose.resetPose();
-        toLog("forward at 0.3m/s");
-        mixer.setVelocity(0.3);
-        state = 11;
-        break;
-      case 11: // wait for distance
-        if (pose.dist >= 1.0)
-        { // done, and then
-          finished = true;
-        }
-        else if (t.getTimePassed() > 10)
-          lost = true;
-        break;
-      default:
-        toLog("Unknown state");
-        lost = true;
-        break;
-    }
+	cout << "Insert the length\n";
+	scanf("%lf", &length);
+	cout << "Advancing " << length << endl;
+	pose.resetPose();
+	mixer.setVelocity(length);
+	mixer.setEdgeMode(false, 0);
+	break;
+      case 11:
+	cout << "Pose is " << pose.dist << endl;
+	if (pose.dist >= length) {
+	  state = 12;
+	    }
+	break;
+      case 12:
+		mixer.setVelocity(0);
+		cout << "Insert the angle\n";
+		scanf("%d", &angle);
+		mixer.setVelocity(0);
+		mixer.setDesiredHeading(angle * M_PI/180);
+		state = 10;
+	break;
+      }
+    // switch (state)
+    // { // make a shift in heading-mission
+    //   case 10:    //     pose.resetPose();
+    //     toLog("forward at 0.3m/s");
+    //     mixer.setVelocity(0.3);
+    //     state = 11;
+    //     break;
+    //   case 11: // wait for distance
+    //     if (pose.dist >= 1.0)
+    //     { // done, and then
+    //       finished = true;
+    //     }
+    //     else if (t.getTimePassed() > 10)
+    //       lost = true;
+    //     break;
+    //   default:
+    //     toLog("Unknown state");
+    //     lost = true;
+    //     break;
+    // }
     if (state != oldstate)
     {
       oldstate = state;
